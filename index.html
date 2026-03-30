@@ -29,47 +29,65 @@
 
         .toast-active { transform: translate(-50%, -20px); opacity: 1; }
 
-        /* PDF & PRINT CONFIG */
+        /* PDF & PRINT CONFIG - FORMAL PEMERINTAH */
         #pdf-template {
             display: none;
             width: 210mm;
             min-height: 297mm;
-            padding: 15mm;
+            padding: 20mm; /* Standar margin formal */
             background: white;
             box-sizing: border-box;
-            font-family: "Times New Roman", serif;
+            font-family: "Times New Roman", Times, serif;
             color: black;
+            line-height: 1.5;
         }
 
         #pdf-template table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
+            margin-top: 10px;
         }
 
         #pdf-template th, 
         #pdf-template td {
             border: 1px solid #000;
-            padding: 6px;
-            font-size: 10pt;
+            padding: 8px;
+            font-size: 12pt; /* Ukuran font sesuai permintaan */
             word-wrap: break-word;
+            vertical-align: top;
+        }
+
+        #pdf-template th {
+            font-weight: bold;
+            text-align: center;
+            background-color: #f2f2f2 !important;
+        }
+
+        /* Support for multi-line text in table */
+        .white-space-pre {
+            white-space: pre-wrap;
         }
 
         @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
             body * {
                 visibility: hidden;
             }
-
             #pdf-template, #pdf-template * {
                 visibility: visible;
             }
-
             #pdf-template {
                 display: block !important;
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 210mm;
+                padding: 20mm;
+                box-shadow: none;
             }
         }
     </style>
@@ -160,7 +178,7 @@
                                 <option value="masuk">Pemasukan (+)</option>
                                 <option value="keluar">Pengeluaran (-)</option>
                             </select>
-                            <textarea id="uraianInput" rows="3" placeholder="Uraian Transaksi" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm resize-none"></textarea>
+                            <textarea id="uraianInput" rows="4" placeholder="Uraian Transaksi (Bisa Enter untuk baris baru)" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-semibold text-sm resize-none"></textarea>
                             <input type="number" id="nominalInput" placeholder="Nominal (Rp)" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-xl text-indigo-700">
                             <button type="submit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest transition-all hover:bg-black">Simpan Data</button>
                         </form>
@@ -185,11 +203,12 @@
 
                 <!-- TABLE PANEL -->
                 <div id="tableContainer" class="lg:col-span-8 bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all duration-500">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 no-print">
+                    <div class="p-6 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50 no-print">
                         <h2 class="text-sm font-black text-slate-800 uppercase tracking-tight">Jurnal Kas Desa</h2>
-                        <div class="flex gap-2">
-                            <button onclick="preparePrint()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-50">Cetak A4</button>
-                            <button onclick="downloadPDF()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-indigo-700">Simpan PDF</button>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="preparePrint()" class="bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-slate-50">Cetak A4</button>
+                            <button onclick="downloadPDF()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-indigo-700">Simpan PDF</button>
+                            <button onclick="exportToWord()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-blue-700">Simpan Word</button>
                         </div>
                     </div>
                     
@@ -212,55 +231,57 @@
         </main>
     </div>
 
-    <!-- PDF TEMPLATE -->
+    <!-- PDF/PRINT TEMPLATE (PRESISI A4 FORMAL) -->
     <div id="pdf-template">
+        <!-- KOP SURAT -->
         <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
             <img src="https://i.ibb.co/JRGvr7s1/logo-indramayu.png" crossorigin="anonymous" style="width: 70px; height: auto; margin-right: 20px;">
             <div style="text-align: center; flex-grow: 1;">
                 <h1 style="font-size: 14pt; margin: 0; font-weight: bold; text-transform: uppercase;">Pemerintah Kabupaten Indramayu</h1>
                 <h2 style="font-size: 12pt; margin: 0; font-weight: bold; text-transform: uppercase;">Kecamatan Sindang</h2>
                 <h3 style="font-size: 18pt; margin: 0; font-weight: bold; text-transform: uppercase; color: #1e1b4b;">Desa Rambatan Wetan</h3>
-                <p style="font-size: 9pt; margin: 2px 0 0 0; font-style: italic;">Jl. Pintu Air, Jawa Barat 45251 | Email: rambatanwetan03@gmail.com</p>
+                <p style="font-size: 10pt; margin: 2px 0 0 0; font-style: italic;">Jl. Pintu Air, Jawa Barat 45251 | Email: rambatanwetan03@gmail.com</p>
             </div>
         </div>
         
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h4 style="font-size: 12pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0;">Laporan Pertanggungjawaban Kas Desa</h4>
-            <p id="pdfPeriod" style="font-size: 10pt; margin: 5px 0 0 0;"></p>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h4 style="font-size: 14pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0;">Laporan Pertanggungjawaban Kas Desa</h4>
+            <p id="pdfPeriod" style="font-size: 11pt; margin: 5px 0 0 0; font-weight: bold;"></p>
         </div>
 
         <table>
             <thead>
-                <tr style="background-color: #f3f4f6;">
-                    <th style="width: 15%; text-align: center;">Tanggal</th>
-                    <th style="width: 45%; text-align: left;">Uraian Transaksi</th>
-                    <th style="width: 20%; text-align: right;">Masuk (Rp)</th>
-                    <th style="width: 20%; text-align: right;">Keluar (Rp)</th>
+                <tr>
+                    <th style="width: 15%;">Tanggal</th>
+                    <th style="width: 45%;">Uraian Transaksi</th>
+                    <th style="width: 20%;">Masuk (Rp)</th>
+                    <th style="width: 20%;">Keluar (Rp)</th>
                 </tr>
             </thead>
             <tbody id="pdfTableBody"></tbody>
             <tfoot>
-                <tr style="font-weight: bold; background-color: #f9fafb;">
-                    <td colspan="2" style="text-align: right;">Total Transaksi</td>
+                <tr style="font-weight: bold;">
+                    <td colspan="2" style="text-align: right;">TOTAL TRANSAKSI</td>
                     <td id="pdfTotalDebit" style="text-align: right;"></td>
                     <td id="pdfTotalKredit" style="text-align: right;"></td>
                 </tr>
-                <tr style="font-weight: bold; background-color: #eef2ff;">
-                    <td colspan="2" style="text-align: right; font-size: 11pt;">SALDO AKHIR</td>
-                    <td colspan="2" id="pdfTotalSaldo" style="text-align: center; font-size: 11pt;"></td>
+                <tr style="font-weight: bold; background-color: #f2f2f2 !important;">
+                    <td colspan="2" style="text-align: right; font-size: 12pt;">SALDO AKHIR</td>
+                    <td colspan="2" id="pdfTotalSaldo" style="text-align: center; font-size: 12pt;"></td>
                 </tr>
             </tfoot>
         </table>
 
-        <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center;">
+        <!-- TANDA TANGAN -->
+        <div style="margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 12pt;">
             <div style="width: 200px;">
                 <p>Mengetahui,<br><strong>Bendahara Desa</strong></p>
-                <div style="height: 70px;"></div>
+                <div style="height: 80px;"></div>
                 <p><strong><u>ANGGA YANUAR</u></strong></p>
             </div>
-            <div style="width: 200px;">
+            <div style="width: 250px;">
                 <p>Indramayu, <span id="pdfPrintDate"></span><br><strong>Kuwu Rambatan Wetan</strong></p>
-                <div style="height: 70px;"></div>
+                <div style="height: 80px;"></div>
                 <p><strong><u>TARJUKI</u></strong></p>
             </div>
         </div>
@@ -276,9 +297,6 @@
         const SUPABASE_KEY = "sb_publishable_VTPjWnnEPY2qTEVcMHWwEA_73qBlO7l";
         const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        /**
-         * KONFIGURASI MULTILOGIN
-         */
         const USERS = {
             "Ramwet03": { password: "12345", role: "admin", name: "Administrator" },
             "Bendahara03": { password: "12345", role: "admin", name: "Bendahara Desa" },
@@ -382,7 +400,7 @@
                 tbody.innerHTML += `
                     <tr>
                         <td class="px-8 py-5 text-xs font-bold">${item.tanggal}</td>
-                        <td class="px-8 py-5 text-xs">${item.uraian}</td>
+                        <td class="px-8 py-5 text-xs whitespace-pre-line">${item.uraian}</td>
                         <td class="px-8 py-5 text-right text-xs font-black ${isMasuk ? 'text-emerald-600' : 'text-slate-300'}">${isMasuk ? formatIDR(item.nominal) : '-'}</td>
                         <td class="px-8 py-5 text-right text-xs font-black ${!isMasuk ? 'text-rose-600' : 'text-slate-300'}">${!isMasuk ? formatIDR(item.nominal) : '-'}</td>
                         ${opsiHtml}
@@ -396,7 +414,14 @@
         document.getElementById('transaksiForm').onsubmit = async function(e) {
             e.preventDefault();
             if(currentUser?.role !== 'admin') return showToast("Akses Ditolak");
-            const payload = { id: crypto.randomUUID(), tanggal: document.getElementById('tglInput').value, jenis: document.getElementById('tipeInput').value, uraian: document.getElementById('uraianInput').value, nominal: parseInt(document.getElementById('nominalInput').value), acc: true };
+            const payload = { 
+                id: crypto.randomUUID(), 
+                tanggal: document.getElementById('tglInput').value, 
+                jenis: document.getElementById('tipeInput').value, 
+                uraian: document.getElementById('uraianInput').value, 
+                nominal: parseInt(document.getElementById('nominalInput').value), 
+                acc: true 
+            };
             document.getElementById('loadingOverlay').classList.remove('hidden');
             await sbClient.from('sikades_db').upsert([payload]);
             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -464,7 +489,13 @@
             sorted.forEach(item => {
                 const isMasuk = item.jenis === 'masuk';
                 if(isMasuk) tM += item.nominal; else tK += item.nominal;
-                pdfBody.innerHTML += `<tr><td style="text-align: center;">${item.tanggal}</td><td>${item.uraian}</td><td style="text-align: right;">${isMasuk ? formatIDR(item.nominal).replace('Rp', '').trim() : '-'}</td><td style="text-align: right;">${!isMasuk ? formatIDR(item.nominal).replace('Rp', '').trim() : '-'}</td></tr>`;
+                pdfBody.innerHTML += `
+                    <tr>
+                        <td style="text-align: center;">${item.tanggal}</td>
+                        <td class="white-space-pre">${item.uraian}</td>
+                        <td style="text-align: right;">${isMasuk ? formatIDR(item.nominal).replace('Rp', '').trim() : '-'}</td>
+                        <td style="text-align: right;">${!isMasuk ? formatIDR(item.nominal).replace('Rp', '').trim() : '-'}</td>
+                    </tr>`;
             });
             document.getElementById('pdfTotalDebit').innerText = formatIDR(tM).replace('Rp', '').trim();
             document.getElementById('pdfTotalKredit').innerText = formatIDR(tK).replace('Rp', '').trim();
@@ -473,24 +504,62 @@
             document.getElementById('pdfPeriod').innerText = "Periode s.d " + new Date().toLocaleDateString('id-ID', {month:'long', year:'numeric'});
         }
 
-        function preparePrint() { populatePrintTemplate(); window.print(); }
+        function preparePrint() { 
+            populatePrintTemplate(); 
+            window.print(); 
+        }
 
         async function downloadPDF() {
             if (dataTransaksi.length === 0) return showToast("Tidak ada data");
             showToast("Menyiapkan PDF...");
             populatePrintTemplate();
-            const original = document.getElementById('pdf-template');
-            const clone = original.cloneNode(true);
-            clone.style.display = "block";
-            clone.style.position = "absolute";
-            clone.style.top = "0"; clone.style.left = "0";
-            clone.style.zIndex = "9999"; clone.style.opacity = "1";
-            document.body.appendChild(clone);
-            await new Promise(r => setTimeout(r, 800));
-            const opt = { margin: 0, filename: `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true, backgroundColor: "#ffffff" }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            try { await html2pdf().set(opt).from(clone).save(); showToast("PDF Berhasil Diunduh"); } 
-            catch (err) { showToast("Gagal membuat PDF"); }
-            document.body.removeChild(clone);
+            const element = document.getElementById('pdf-template');
+            element.style.display = 'block';
+            const opt = { 
+                margin: 0, 
+                filename: `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.pdf`, 
+                image: { type: 'jpeg', quality: 1 }, 
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+            };
+            try { 
+                await html2pdf().set(opt).from(element).save(); 
+                showToast("PDF Berhasil Diunduh"); 
+            } catch (err) { 
+                showToast("Gagal membuat PDF"); 
+            }
+            element.style.display = 'none';
+        }
+
+        function exportToWord() {
+            if (dataTransaksi.length === 0) return showToast("Tidak ada data");
+            showToast("Menyiapkan Dokumen Word...");
+            populatePrintTemplate();
+            
+            const content = document.getElementById('pdf-template').innerHTML;
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                "xmlns='http://www.w3.org/TR/REC-html40'>"+
+                "<head><meta charset='utf-8'><title>Export Word</title>"+
+                "<style>"+
+                "@page { size: A4; margin: 2cm; } "+
+                "body { font-family: 'Times New Roman', serif; font-size: 12pt; } "+
+                "table { width: 100%; border-collapse: collapse; } "+
+                "th, td { border: 1pt solid black; padding: 5pt; font-size: 12pt; } "+
+                "th { background-color: #f2f2f2; } "+
+                ".white-space-pre { white-space: pre-wrap; } "+
+                "</style></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + content + footer;
+            
+            const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            const fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.doc`;
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+            showToast("Word Berhasil Diunduh");
         }
 
         function showToast(msg) {
