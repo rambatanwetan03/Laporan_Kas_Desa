@@ -31,12 +31,7 @@
 
         /* PDF & PRINT CONFIG */
         #pdf-template {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            opacity: 0;
-            pointer-events: none;
+            display: none;
             width: 210mm;
             min-height: 297mm;
             padding: 15mm;
@@ -70,12 +65,11 @@
             }
 
             #pdf-template {
+                display: block !important;
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 210mm;
-                opacity: 1 !important;
-                z-index: 9999 !important;
             }
         }
     </style>
@@ -101,7 +95,7 @@
             <div class="p-10 space-y-5">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Username</label>
-                    <input id="username" type="text" placeholder="Masukkan ID" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none transition-all font-medium" onkeydown="if(event.key==='Enter') handleLogin()">
+                    <input id="username" type="text" placeholder="Masukkan Username" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none transition-all font-medium" onkeydown="if(event.key==='Enter') handleLogin()">
                 </div>
                 <div class="space-y-1 relative">
                     <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Password</label>
@@ -171,6 +165,22 @@
                             <button type="submit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest transition-all hover:bg-black">Simpan Data</button>
                         </form>
                     </div>
+
+                    <!-- BACKUP & RESTORE PANEL -->
+                    <div id="backupPanel" class="bg-slate-900 p-6 rounded-[2rem] shadow-sm text-white">
+                        <h2 class="text-[10px] font-black uppercase tracking-widest mb-4 opacity-60">Pencadangan Data</h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="exportBackup()" class="flex flex-col items-center justify-center p-4 bg-white/10 rounded-2xl hover:bg-white/20 transition-all">
+                                <span class="text-[10px] font-bold uppercase mb-1">Backup</span>
+                                <span class="text-[8px] opacity-50">Unduh JSON</span>
+                            </button>
+                            <label class="flex flex-col items-center justify-center p-4 bg-white/10 rounded-2xl hover:bg-white/20 transition-all cursor-pointer">
+                                <input type="file" id="restoreInput" accept=".json" class="hidden" onchange="importBackup(event)">
+                                <span class="text-[10px] font-bold uppercase mb-1">Restore</span>
+                                <span class="text-[8px] opacity-50">Unggah Berkas</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- TABLE PANEL -->
@@ -202,7 +212,7 @@
         </main>
     </div>
 
-    <!-- PDF TEMPLATE (RENDER HIDDEN) -->
+    <!-- PDF TEMPLATE -->
     <div id="pdf-template">
         <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px;">
             <img src="https://i.ibb.co/JRGvr7s1/logo-indramayu.png" crossorigin="anonymous" style="width: 70px; height: auto; margin-right: 20px;">
@@ -266,10 +276,13 @@
         const SUPABASE_KEY = "sb_publishable_VTPjWnnEPY2qTEVcMHWwEA_73qBlO7l";
         const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        /**
+         * KONFIGURASI MULTILOGIN
+         */
         const USERS = {
-            "Ramwet03": { password: "123", role: "admin", name: "Administrator" },
+            "Ramwet03": { password: "12345", role: "admin", name: "Administrator" },
             "Bendahara03": { password: "12345", role: "admin", name: "Bendahara Desa" },
-            "Kuwu03": { password: "123435", role: "viewer", name: "Pak Kuwu" }
+            "Kuwu03": { password: "12345", role: "viewer", name: "Pak Kuwu" }
         };
 
         let dataTransaksi = [];
@@ -307,6 +320,7 @@
         function handleLogin() {
             const userIn = document.getElementById('username').value;
             const passIn = document.getElementById('password').value;
+            
             if(USERS[userIn] && USERS[userIn].password === passIn) {
                 const userData = { username: userIn, name: USERS[userIn].name, role: USERS[userIn].role };
                 currentUser = userData;
@@ -323,14 +337,19 @@
             const tableCont = document.getElementById('tableContainer');
             const userBadge = document.getElementById('userBadge');
             const thOpsi = document.getElementById('thOpsi');
+            const backupPanel = document.getElementById('backupPanel');
+            
             userBadge.innerText = role === 'admin' ? 'Editor Access' : 'View Only';
             userBadge.classList.remove('hidden');
+            
             if(role === 'viewer') {
                 formCont.classList.add('hidden');
+                backupPanel.classList.add('hidden');
                 tableCont.classList.replace('lg:col-span-8', 'lg:col-span-12');
                 thOpsi.classList.add('hidden');
             } else {
                 formCont.classList.remove('hidden');
+                backupPanel.classList.remove('hidden');
                 tableCont.classList.replace('lg:col-span-12', 'lg:col-span-8');
                 thOpsi.classList.remove('hidden');
             }
@@ -340,9 +359,13 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             localStorage.setItem('sikades_session', JSON.stringify(currentUser));
+            renderApp();
         }
 
-        function logout() { localStorage.removeItem('sikades_session'); location.reload(); }
+        function logout() { 
+            localStorage.removeItem('sikades_session'); 
+            location.reload(); 
+        }
 
         function renderApp() {
             const tbody = document.getElementById('tableBody');
@@ -351,10 +374,19 @@
             dataTransaksi.forEach(item => {
                 const isMasuk = item.jenis === 'masuk';
                 if(isMasuk) tM += item.nominal; else tK += item.nominal;
+                
                 const opsiHtml = currentUser?.role === 'admin' 
                     ? `<td class="px-8 py-5 text-center"><button onclick="deleteTrans('${item.id}')" class="text-rose-500 text-[10px] font-bold hover:underline">Hapus</button></td>`
-                    : `<td class="hidden"></td>`;
-                tbody.innerHTML += `<tr><td class="px-8 py-5 text-xs font-bold">${item.tanggal}</td><td class="px-8 py-5 text-xs">${item.uraian}</td><td class="px-8 py-5 text-right text-xs font-black ${isMasuk ? 'text-emerald-600' : 'text-slate-300'}">${isMasuk ? formatIDR(item.nominal) : '-'}</td><td class="px-8 py-5 text-right text-xs font-black ${!isMasuk ? 'text-rose-600' : 'text-slate-300'}">${!isMasuk ? formatIDR(item.nominal) : '-'}</td>${opsiHtml}</tr>`;
+                    : ``;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-8 py-5 text-xs font-bold">${item.tanggal}</td>
+                        <td class="px-8 py-5 text-xs">${item.uraian}</td>
+                        <td class="px-8 py-5 text-right text-xs font-black ${isMasuk ? 'text-emerald-600' : 'text-slate-300'}">${isMasuk ? formatIDR(item.nominal) : '-'}</td>
+                        <td class="px-8 py-5 text-right text-xs font-black ${!isMasuk ? 'text-rose-600' : 'text-slate-300'}">${!isMasuk ? formatIDR(item.nominal) : '-'}</td>
+                        ${opsiHtml}
+                    </tr>`;
             });
             document.getElementById('statMasuk').innerText = formatIDR(tM);
             document.getElementById('statKeluar').innerText = formatIDR(tK);
@@ -384,6 +416,46 @@
             }
         }
 
+        function exportBackup() {
+            if(dataTransaksi.length === 0) return showToast("Tidak ada data untuk dibackup");
+            const dataStr = JSON.stringify(dataTransaksi, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `SIKADES_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Backup Berhasil Diunduh");
+        }
+
+        async function importBackup(event) {
+            if(currentUser?.role !== 'admin') return showToast("Hanya Editor yang bisa Restore");
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedData)) throw new Error("Format tidak valid");
+                    if (!confirm(`Konfirmasi Restore ${importedData.length} data?`)) return;
+                    document.getElementById('loadingOverlay').classList.remove('hidden');
+                    const { error } = await sbClient.from('sikades_db').upsert(importedData);
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    if (error) throw error;
+                    await syncFromSupabase();
+                    showToast("Restore Berhasil Selesai");
+                    event.target.value = '';
+                } catch (err) {
+                    showToast("Gagal memproses berkas backup");
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }
+            };
+            reader.readAsText(file);
+        }
+
         function populatePrintTemplate() {
             const pdfBody = document.getElementById('pdfTableBody');
             pdfBody.innerHTML = '';
@@ -401,54 +473,24 @@
             document.getElementById('pdfPeriod').innerText = "Periode s.d " + new Date().toLocaleDateString('id-ID', {month:'long', year:'numeric'});
         }
 
-        function preparePrint() {
-            populatePrintTemplate();
-            window.print();
-        }
+        function preparePrint() { populatePrintTemplate(); window.print(); }
 
         async function downloadPDF() {
-            if (dataTransaksi.length === 0) {
-                return showToast("Tidak ada data");
-            }
-
+            if (dataTransaksi.length === 0) return showToast("Tidak ada data");
             showToast("Menyiapkan PDF...");
             populatePrintTemplate();
-
-            const element = document.getElementById('pdf-template');
-
-            // tampilkan sementara agar bisa dirender
-            element.style.opacity = "1";
-            element.style.zIndex = "9999";
-
-            await new Promise(resolve => setTimeout(resolve, 500)); // tunggu render
-
-            const opt = {
-                margin: 0,
-                filename: `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: {
-                    scale: 3,
-                    useCORS: true,
-                    allowTaint: true
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait'
-                }
-            };
-
-            try {
-                await html2pdf().set(opt).from(element).save();
-                showToast("PDF Berhasil Diunduh");
-            } catch (err) {
-                console.error(err);
-                showToast("Gagal membuat PDF");
-            }
-
-            // sembunyikan lagi
-            element.style.opacity = "0";
-            element.style.zIndex = "-1";
+            const original = document.getElementById('pdf-template');
+            const clone = original.cloneNode(true);
+            clone.style.display = "block";
+            clone.style.position = "absolute";
+            clone.style.top = "0"; clone.style.left = "0";
+            clone.style.zIndex = "9999"; clone.style.opacity = "1";
+            document.body.appendChild(clone);
+            await new Promise(r => setTimeout(r, 800));
+            const opt = { margin: 0, filename: `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true, backgroundColor: "#ffffff" }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            try { await html2pdf().set(opt).from(clone).save(); showToast("PDF Berhasil Diunduh"); } 
+            catch (err) { showToast("Gagal membuat PDF"); }
+            document.body.removeChild(clone);
         }
 
         function showToast(msg) {
