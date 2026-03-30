@@ -28,7 +28,6 @@
                 margin: 0 !important;
                 padding: 0 !important;
             }
-            /* Memaksa background tampil saat print */
             .bg-slate-100 { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
             .bg-indigo-50 { background-color: #eef2ff !important; -webkit-print-color-adjust: exact; }
             .text-indigo-900 { color: #312e81 !important; -webkit-print-color-adjust: exact; }
@@ -67,10 +66,12 @@
                 <h1 class="text-3xl font-extrabold uppercase tracking-tighter">SIKADES<span class="text-indigo-300">PRO</span></h1>
                 <p class="text-indigo-100 text-xs mt-1 font-medium tracking-widest opacity-80 uppercase">Sistem Kas Desa Digital</p>
             </div>
+            <!-- Login Form Container -->
             <div class="p-10 space-y-5">
-                <input id="username" type="text" placeholder="Username" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none transition font-semibold">
-                <input id="password" type="password" placeholder="Password" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none transition font-semibold">
+                <input id="username" type="text" placeholder="Username" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none transition font-semibold" onkeydown="if(event.key==='Enter') handleLogin()">
+                <input id="password" type="password" placeholder="Password" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none transition font-semibold" onkeydown="if(event.key==='Enter') handleLogin()">
                 <button onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-5 rounded-2xl transition shadow-xl shadow-indigo-100 active:scale-95">MASUK</button>
+                <p class="text-center text-[10px] text-slate-400 uppercase font-bold tracking-widest">Tekan Enter Untuk Masuk</p>
             </div>
         </div>
     </div>
@@ -116,6 +117,22 @@
                         <input type="number" id="nominalInput" placeholder="Nominal" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xl text-indigo-700">
                         <button type="submit" id="btnSubmit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl uppercase tracking-widest">Simpan Data</button>
                     </form>
+
+                    <!-- BACKUP & RESTORE UI -->
+                    <div class="mt-8 pt-8 border-t border-slate-100 space-y-3">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pencadangan Data</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="handleBackup()" class="flex flex-col items-center justify-center p-4 bg-emerald-50 text-emerald-600 rounded-2xl hover:bg-emerald-100 transition border border-emerald-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span class="text-[9px] font-black uppercase">Backup</span>
+                            </button>
+                            <label class="flex flex-col items-center justify-center p-4 bg-amber-50 text-amber-600 rounded-2xl hover:bg-amber-100 transition border border-amber-100 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <span class="text-[9px] font-black uppercase">Restore</span>
+                                <input type="file" id="restoreFile" class="hidden" accept=".json" onchange="handleRestore(this)">
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="lg:col-span-8 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -148,9 +165,8 @@
         </main>
     </div>
 
-    <!-- PDF/PRINT TEMPLATE -->
+    <!-- PDF TEMPLATE (HIDDEN) -->
     <div id="pdf-template">
-        <!-- KOP SURAT -->
         <div class="flex items-center border-b-4 border-double border-slate-900 pb-3 mb-4">
             <div class="w-[70px] mr-4">
                 <img src="https://i.ibb.co/JRGvr7s1/logo-indramayu.png" alt="logo" style="width:70px; height:auto; object-fit:contain;">
@@ -162,9 +178,7 @@
                 <p class="text-[8px] italic font-medium text-slate-600 leading-none mt-1">Jl. Pintu Air, Jawa Barat 45251 | Email: rambatanwetan03@gmail.com</p>
             </div>
         </div>
-
         <h3 class="text-center font-black uppercase text-xs mb-4 underline">Laporan Rekapitulasi Kas Desa</h3>
-
         <table class="w-full text-[9px] border-collapse border border-slate-800">
             <thead>
                 <tr class="bg-slate-100 font-bold uppercase">
@@ -187,8 +201,6 @@
                 </tr>
             </tfoot>
         </table>
-
-        <!-- TANDA TANGAN -->
         <div class="mt-8 grid grid-cols-2 text-center">
             <div>
                 <p class="text-[10px] font-bold mb-16 uppercase">Mengetahui,<br>Bendahara Desa</p>
@@ -230,6 +242,7 @@
 
         function handleLogin() {
             const user = document.getElementById('username').value;
+            // Password check is simple as per original script
             if(user === "Ramwet03") loginSuccess("ADMIN DESA", "admin");
             else showToast("Kredensial Salah");
         }
@@ -290,7 +303,6 @@
             }
         }
 
-        // Fungsi Helper Mengisi Data ke Template
         function populatePrintTemplate() {
             const pdfBody = document.getElementById('pdfTableBody');
             pdfBody.innerHTML = '';
@@ -314,18 +326,15 @@
             document.getElementById('pdfPrintDate').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        // Fungsi Cetak Browser (Paling Presisi untuk A4)
         function preparePrint() {
             populatePrintTemplate();
             window.print();
         }
 
-        // Fungsi Download PDF (html2pdf)
         async function downloadPDF() {
             showToast("Menyiapkan PDF...");
             populatePrintTemplate();
             const template = document.getElementById('pdf-template');
-            
             const opt = {
                 margin: 0,
                 filename: `LAPORAN_KAS_${new Date().toISOString().slice(0,10)}.pdf`,
@@ -333,12 +342,45 @@
                 html2canvas: { scale: 3, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-
             template.style.display = 'block';
             html2pdf().set(opt).from(template).save().then(() => {
                 template.style.display = 'none';
                 showToast("Berhasil Diunduh");
             });
+        }
+
+        // BACKUP FUNCTION
+        function handleBackup() {
+            if(dataTransaksi.length === 0) return showToast("Tidak Ada Data");
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataTransaksi));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `SIKADES_BACKUP_${new Date().toLocaleDateString('id-ID')}.json`);
+            dlAnchorElem.click();
+            showToast("Backup Berhasil");
+        }
+
+        // RESTORE FUNCTION
+        async function handleRestore(input) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(confirm(`Impor ${imported.length} data? Data lama dengan ID yang sama akan diperbarui.`)) {
+                        document.getElementById('loadingOverlay').classList.remove('hidden');
+                        await sbClient.from('sikades_db').upsert(imported);
+                        await syncFromSupabase();
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        showToast("Data Berhasil Dimuat");
+                    }
+                } catch(err) {
+                    showToast("File Tidak Valid");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset input
         }
 
         function showToast(msg) {
